@@ -9,7 +9,7 @@ def available():
     try:
         with socket.create_connection(('127.0.0.1',9876),timeout=.3): return True
     except OSError:return False
-async def call(tool,arguments):
+async def _call(tool,arguments):
     env=dict(os.environ,DISABLE_TELEMETRY='true',BLENDER_HOST='127.0.0.1',BLENDER_PORT='9876')
     params=StdioServerParameters(command=str(ROOT/'.venv/bin/blender-mcp'),env=env)
     async with stdio_client(params) as (reader,writer):
@@ -18,6 +18,17 @@ async def call(tool,arguments):
             text='\n'.join(c.text for c in result.content if hasattr(c,'text'))
             if result.isError or text.startswith(('Error','Rejected')):raise RuntimeError(text)
             return text
+
+def error_message(error):
+    if isinstance(error,BaseExceptionGroup):
+        return '; '.join(dict.fromkeys(error_message(e) for e in error.exceptions))
+    return str(error) or type(error).__name__
+
+async def call(tool,arguments):
+    try:
+        return await _call(tool,arguments)
+    except ExceptionGroup as error:
+        raise RuntimeError(error_message(error)) from error
 
 def run_scene(request_path):
     # Only our checked-in worker and backend-created request are executable.

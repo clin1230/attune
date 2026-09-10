@@ -22,7 +22,13 @@ def cube(id,loc,dim,mat,radius=.008):
     return o
 if not bpy.app.background:
     bpy.ops.wm.save_as_mainfile(filepath=str(out/'previous_open_scene.blend'),copy=True)
-if req.get('source'):
+verification=None
+if req.get('redesign_changes'):
+    import runpy
+    verification=runpy.run_path(str(Path(__file__).with_name('redesign.py')))['apply_redesign'](req)
+    (out/'verification.json').write_text(json.dumps(verification,indent=2))
+    if not verification['passed']:raise ValueError('Redesign verification failed; source is preserved')
+elif req.get('source'):
     bpy.ops.wm.open_mainfile(filepath=req['source'])
     if 'ceramic_matte_warm_01' not in bpy.data.materials:material('ceramic_matte_warm_01',(.72,.64,.5),0,.7)
     if 'amber_muted_01' not in bpy.data.materials:material('amber_muted_01',(.64,.28,.055),.1,.4)
@@ -31,6 +37,9 @@ if req.get('source'):
         if change['property']=='material': o.data.materials.clear(); o.data.materials.append(bpy.data.materials[change['after']])
         elif change['property']=='thickness_mm': o.dimensions.z=change['after']/1000
         elif change['property']=='accent': o.data.materials.clear(); o.data.materials.append(bpy.data.materials[change['after']])
+elif plan.get('components') and not req.get('seeded'):
+    import runpy
+    runpy.run_path(str(Path(__file__).with_name('product.py')))['build_product'](req)
 else:
     bpy.ops.object.select_all(action='SELECT'); bpy.ops.object.delete(use_global=False)
     chrome=material('chrome_polished_02',(.48,.52,.56),1,.13)
@@ -81,7 +90,7 @@ scene.render.resolution_x=1000; scene.render.resolution_y=1000; scene.render.res
 scene.render.image_settings.file_format='PNG'
 bpy.context.view_layer.update()
 objects=[]
-for o in bpy.data.objects:
+for o in scene.objects:
     if o.get('object_id'):
         objects.append({'object_id':o['object_id'],'name':o.name,'type':o.type,'dimensions_mm':{'width':round(o.dimensions.x*1000,3),'depth':round(o.dimensions.y*1000,3),'height':round(o.dimensions.z*1000,3)},'location_mm':[round(v*1000,3) for v in o.location],'material':o.data.materials[0].name if o.type in ['MESH','FONT'] and len(o.data.materials) else None,'energy':o.data.energy if o.type=='LIGHT' else None})
 (out/'manifest.json').write_text(json.dumps({'scene_version':out.name,'objects':objects},indent=2))
@@ -89,8 +98,8 @@ bpy.ops.object.select_all(action='DESELECT')
 for obj in bpy.context.scene.objects:
     if obj.type=='MESH' and obj.get('object_id') and obj['object_id']!='studio_ground':obj.select_set(True)
 bpy.ops.export_scene.gltf(filepath=str(out/'model.glb'),export_format='GLB',use_selection=True,export_extras=True,export_apply=True)
-scene.camera=bpy.data.objects['three_quarter']
+scene.camera=next(o for o in scene.objects if o.get('object_id')=='three_quarter')
 bpy.ops.wm.save_as_mainfile(filepath=str(out/'scene.blend'))
 for name in ['three_quarter','front','detail']:
-    scene.camera=bpy.data.objects[name]; scene.render.filepath=str(out/(name+'.png')); bpy.ops.render.render(write_still=True)
+    scene.camera=next(o for o in scene.objects if o.get('object_id')==name); scene.render.filepath=str(out/(name+'.png')); bpy.ops.render.render(write_still=True)
 (out/'complete.json').write_text(json.dumps({'ok':True}))

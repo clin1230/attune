@@ -26,7 +26,7 @@ export default function Viewer({url,onSelect}:{url:string;onSelect:(id:string)=>
       if(disposed){disposeObject(g.scene);return;}
       model=g.scene;scene.add(model);
       const box=new THREE.Box3().setFromObject(model),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
-      const d=Math.max(size.x,size.y,size.z);camera.position.set(center.x+d*1.6,center.y+d*.8,center.z+d*2.2);controls.target.copy(center);controls.update();
+      const d=Math.max(size.x,size.y,size.z);controls.minDistance=d*.5;controls.maxDistance=d*8;camera.near=d*.001;camera.far=d*100;camera.updateProjectionMatrix();camera.position.set(center.x+d*1.6,center.y+d*.8,center.z+d*2.2);controls.target.copy(center);controls.update();
     },undefined,()=>{if(!disposed)setError('No interactive model for this version yet. Choose a rendered view.');});
     const resize=()=>{const w=element.clientWidth,h=element.clientHeight;renderer.setSize(w,h);camera.aspect=w/Math.max(h,1);camera.updateProjectionMatrix();};
     const observer=new ResizeObserver(resize);observer.observe(element);resize();
