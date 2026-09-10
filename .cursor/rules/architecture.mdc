@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+React/TypeScript web workspace, local FastAPI orchestration, SQLite state, Blender Python worker. The versioned .blend scene owns geometry; its measured manifest and renders are version-specific evidence. AI produces validated data, never arbitrary executable Blender code. Keep local-only architecture; a hosted frontend cannot directly execute local Blender.
