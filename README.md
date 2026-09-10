@@ -1,47 +1,113 @@
-# Vela — Brand design workspace
+# Attune — Brand-aware 3D product concepts
 
-Local React + FastAPI + Blender MVP. See docs/PRD.md for the source requirements and docs/DEMO.md for the prepared fixture.
+Attune is a local design workspace that turns brand guidelines and a conversational product brief into an editable Blender concept. Designers review the brand direction, build a concept, and evaluate version-specific feedback before approving a rebuild.
 
-## Run
+The current implementation supports declarative product components rather than a speaker-only template. It has been exercised locally with speakers, portable chargers, and a laptop. These are visual concepts, not production CAD or validated engineering designs.
+
+## What works today
+
+- Separate projects with their own sources, conversation, rules, concept versions, and feedback. Project deletion hides the project while retaining local data.
+- Chat-based intake with queued guideline, logo, reference, and moodboard attachments. Files are submitted only when Send is pressed; Enter sends and Shift+Enter inserts a newline.
+- Brand/Product summary cards with palette, typography, brief, constraints, and source-attributed rules. New projects start without seeded brand content.
+- Direct **Review & approve rules → Build concept** actions, with preparation and rendering indicators.
+- Interactive GLB, front/perspective/detail renders, downloadable `.blend`, source comparison, and concept history with expandable changes.
+- **Team feedback:** Approve/Remove decisions, accepted-comment redesign planning, a change-summary dialog, and explicit **Rebuild** approval.
+- Restricted component edits with before/after verification and preservation of the source scene.
+
+Team feedback currently uses locally stored comments and optional sample reviewer names/illustrated avatars. There is no teammate login, publishing workflow, invitation, remote comment submission UI, or role-based authorization. The sidebar identity is a fictional presentation profile.
+
+## Local setup
+
+Prerequisites: Python compatible with the pinned dependencies, Node.js/npm, and Blender. The current local environment has used Python 3.14 and Blender 5.0.1 on macOS; other environments have not been verified here.
 
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
-npm install
-npm run build
-.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000
+npm ci
+cp .env.example .env.local
 ```
 
-Open http://127.0.0.1:8000. For frontend development, run `npm run dev` alongside the backend.
+Edit `.env.local` locally:
 
-Blender defaults to `/Applications/Blender.app/Contents/MacOS/Blender`; override BLENDER_PATH if needed. Set OPENAI_API_KEY and the exact available OPENAI_MODEL in the server environment for live extraction, planning and visual review. `.env.example` is documentation; the server does not automatically load `.env` files. Never put API keys in the frontend.
+- `OPENAI_API_KEY`: your API key.
+- `OPENAI_MODEL`: an exact Responses API model ID available to your account, with image input and structured-output support.
+- `BLENDER_PATH`: your Blender executable; the default is `/Applications/Blender.app/Contents/MacOS/Blender`.
 
-## Workflow
+The backend automatically loads `.env.local`; existing process environment values take precedence. Never place keys in frontend code or commit this file. Without AI configuration, automated chat interpretation and generation are disabled.
 
-Approve editable Vela rules → approve dimensions and rationale → generate a fresh concept or diagnostic scene → run deterministic review → preview a suggested fix → approve → rerender and verify → compare or restore versions.
+### Blender connection
 
-State is stored in data/workspace.sqlite. Versioned .blend files, measurements, renders and worker logs are in outputs/demo. The local service is single-user and binds only to loopback. Do not expose it to the public internet.
+Install/enable the Blender MCP addon matching the pinned `blender-mcp` package, open Blender, and start the addon's server on `127.0.0.1:9876`. See the [Blender MCP project](https://github.com/ahujasid/blender-mcp) for addon installation. Installing the Python dependencies alone does not enable the GUI addon.
 
-## Boundaries
+The backend invokes `.venv/bin/blender-mcp` through the MCP Python client and prefers the running GUI. Telemetry is disabled for that subprocess. Only checked-in worker scripts are invoked; model output is validated data, not executable Python. If the socket is unavailable, generation attempts background Blender. Background execution has failed with Metal initialization on the development Mac, so the GUI route is recommended for the demo.
 
-The generator supports a bounded speaker template, not arbitrary product geometry. Only shell material, ring accent, and ring thickness are auto-fixable. Logo checking currently measures origin height; studio checking measures light power. Visual interpretation stays REVIEW. Live AI requires configured credentials and has not been validated without them. Frontend source compilation and backend tests do not substitute for product-designer evaluation.
+### Run the built application
 
-API implementation reference: https://developers.openai.com/api/docs/guides/structured-outputs
+```sh
+npm run build
+.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8001 --no-access-log
+```
 
-## Blender MCP execution (working route)
+Open [localhost:8001](http://127.0.0.1:8001/). Keep the terminal and Blender running.
 
-The backend now prefers Blender MCP on `127.0.0.1:9876` and runs the checked-in worker inside the open Blender GUI. This avoids the observed background Metal initialization crash. No arbitrary Python execution endpoint is exposed by the web app.
+For hot-reload frontend development, the existing Vite proxy targets backend port **8000**:
 
-Installed here: `blender-mcp==1.9.1`, matching Blender addon in the Blender 5.0 user scripts directory, and `[mcp_servers.blender]` in the existing Codex config. Existing MCP entries were preserved. Telemetry is disabled. The package is invoked directly from this project's virtual environment; uvx is not required for this installation.
+```sh
+# Terminal 1
+.venv/bin/uvicorn backend.main:app --host 127.0.0.1 --port 8000
+# Terminal 2
+npm run dev
+```
 
-Keep Blender open with its MCP server running. If reconnecting after restart, use the Blender MCP sidebar's connection button. The wording may say “Connect to Claude,” but the connection also works with Codex. The web header indicates whether the local socket is reachable.
+Open the Vite URL, normally [localhost:5173](http://127.0.0.1:5173/).
 
-The backend uses the official MCP Python client and the server's `execute_blender_code` tool to invoke only `blender/scene.py` with backend-generated versioned requests. Every GUI run backs up the previously open scene before loading or generating geometry. Selection uses the same MCP transport; the older selection_bridge.py is no longer needed when MCP is connected.
+## Using the workspace
 
-`outputs/MCP Verification.json` records the local generation/revision test and is not committed. The original and revised test scenes are demo fixtures, not human-approved product revisions.
+1. Create a project. Attach guidelines or references and describe the product in Chat.
+2. Press Send. The AI organizes brand/product context and asks follow-up questions.
+3. Review the cards, clarify through Chat, then approve the rules.
+4. Click Build concept. The app creates and validates a component plan and starts Blender without another plan-approval modal.
+5. Explore the model and renders, download the Blender scene, or compare saved versions.
+6. For your own revisions, update the direction in Chat, review the updated rules, and build another concept. Chat alone does not modify geometry or guarantee narrowly scoped edits.
+7. For existing team feedback, approve or remove every comment, click Redesign, inspect the summary, then click Rebuild. Conflicts and unsupported changes must be resolved first.
 
-Sources: https://github.com/ahujasid/blender-mcp and https://learn.chatgpt.com/docs/extend/mcp?surface=cli
+A fresh checkout does not contain the local sample projects, comments, uploads, or rendered scenes. The comment creation/sample-seeding endpoints remain in the backend for local fixtures; there is no comment composer or sample-loading button in the current UI.
 
-## Team collaboration
+## Architecture and storage
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for branch and document review workflow.
+| Location | Responsibility |
+|---|---|
+| `frontend/src/main.tsx`, `style.css` | React workspace, chat, project controls, feedback, history |
+| `frontend/src/Viewer.tsx` | Three.js GLB viewer |
+| `backend/main.py` | FastAPI, SQLite state, intake, model calls, job orchestration |
+| `backend/redesign.py` | Feedback decisions, proposal validation, approval binding |
+| `backend/mcp_bridge.py` | Local Blender MCP transport |
+| `blender/product.py`, `scene.py` | Component generation, manifests, GLB and renders |
+| `blender/redesign.py` | Approved edits to a source copy and scene verification |
+| `data/workspace.sqlite` | Local project records |
+| `data/uploads/` | Uploaded source files |
+| `outputs/demo/<version>/` | Scene, GLB, three renders, manifest, request and worker log; verification for redesigns |
+
+Blender work is serialized across projects. The service is designed for a trusted local machine, with no authentication. It is not ready for public hosting.
+
+## Checks
+
+```sh
+npm run build
+.venv/bin/python -m unittest discover -s backend -p 'test_*.py'
+```
+
+The backend suite currently contains 31 tests. Unit tests cover state isolation, intake, history, component validation, feedback/approval guards and error handling. They do not render Blender scenes. Real rendering requires a separate live check with Blender and API access.
+
+If generation fails, inspect the UI error and the version's `worker.log`. AI failures retain already saved messages and uploads; use **Retry understanding**. A failed redesign keeps the source version current. A reachable Blender socket does not prove a job will succeed.
+
+## Scope and documentation
+
+Supported geometry uses boxes, cylinders, spheres, cones and tori with editable transforms, materials and bevels. Complex reconstruction, functional internals, manufacturing tolerances, brand-compliance certification, budget estimation, and deadline-risk scoring are not implemented. Legacy Vela speaker/demo review APIs remain and are not generic product validation.
+
+- [Current PRD](docs/PRD.md) — implementation-aligned scope and acceptance criteria.
+- [Generation workflow](docs/GENERATION_MVP.md) — concise flow reference.
+- [Team alignment idea](docs/TEAM_ALIGNMENT_IDEA.md) — deferred direction.
+- [Contributing](CONTRIBUTING.md) — collaboration workflow.
+
+`.env.local`, `data/`, `outputs/`, `work/`, dependencies, and build artifacts are excluded from Git. Only `.env.example` is committed as an empty configuration template.

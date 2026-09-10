@@ -16,6 +16,6 @@ Use Markdown for requirements where practical. Do not commit confidential creden
 
 ## Code updates
 
-Work on the feature branch, run `npm run build` and `.venv/bin/python -m unittest backend.test_core -v`, then open a pull request into `main`. Reference any related requirements update.
+Work on the feature branch, run `npm run build` and `.venv/bin/python -m unittest discover -s backend -p 'test_*.py'`, then open a pull request into `main`. Reference any related requirements update.
 
 Branch protection and collaborator access are GitHub settings; creating these branches does not configure either automatically.

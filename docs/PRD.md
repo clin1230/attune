@@ -1,281 +1,115 @@
-# Product Requirements Document
+# Attune — Product Requirements Document
 
-## Attune: Collaborative 3D Concept Prototyping
+**Version:** 3.0 · **Updated:** 2026-09-10
+**Status:** Implementation-aligned local MVP
+**Primary user:** Product designer
 
-**Version:** 2.1  
-**Status:** MVP  
-**Primary user:** Product designer  
-**MVP category:** Compact desktop speaker
+This document describes the current code, with future capabilities explicitly separated. It supersedes earlier speaker-only and publish-to-team specifications. The product intent remains faster concept prototyping with brand context and designer-controlled iteration.
 
-## 1. Product Summary
+## 1. Product and problem
 
-Attune helps designers turn product requirements and brand guidelines into a high-level 3D concept. The designer can publish the concept for team feedback, choose which comments should be considered, and ask the agent to create a new version from the accepted comments.
+Attune helps designers create a product **for a brand**, using guidelines, references, and a conversational brief. It reduces the work of translating those inputs into an early editable 3D concept and keeps revisions tied to their context and feedback.
 
-The product has two goals:
+The current experience is single-user on one local machine. Team review is represented through stored version-specific comments and sample reviewer identities; actual multi-user collaboration is future work.
 
-1. Help designers brainstorm and prototype ideas quickly without needing advanced Blender skills.
-2. Make team feedback easier to collect, evaluate, and use in the next design iteration.
+## 2. Inputs and outputs
 
-### Core Workflow
+Inputs include brand/design/product guidelines in text-based PDF, DOCX, Markdown or text; logos, references and moodboards in PNG, JPEG or WebP; and chat messages describing product type, functions, target users, constraints, deadline and optional effort/budget notes. Typography and palette are captured in the interpreted brand context. The intake schema currently requires three palette colors; this is a working interpretation, not proof that the source specified exactly three colors.
 
-```text
-Product requirements + Brand guidelines
-                    ↓
-       Generate and validate 3D concept
-                    ↓
-          Publish concept to team
-                    ↓
-             Collect feedback
-                    ↓
-     Designer accepts or removes comments
-                    ↓
-        Designer clicks “Redesign”
-                    ↓
-        Generate and validate new version
-```
+Outputs are a declarative product plan, an editable `.blend`, an interactive GLB, front/three-quarter/detail renders, an object manifest, and version history. Redesigns also store approved field changes and a verification report.
 
-## 2. Problems
+Product categories are not allowlisted. The component builder uses boxes, cylinders, spheres, cones and tori, with stable IDs, dimensions, position, rotation, color, roughness, metallic and bevel. Local examples include chargers, speakers and a laptop. This does not imply arbitrary CAD capability or exact reconstruction of reference images.
 
-### Slow 3D Prototyping
+## 3. Project setup and conversational intake
 
-Blender and similar tools have a steep learning curve. Designers may spend too much time learning 3D software or waiting for 3D support before they can visualize and discuss an early idea.
+1. Create a named project with an optional brand name. Each project owns its conversation, sources, rules, plans, feedback and versions.
+2. A new project has no preset palette, rules or product dimensions. Its context area invites source upload or a description in Chat. A legacy default Vela demo record may still exist locally.
+3. Attachments remain queued until Send. Users can remove queued files or send files without text. Enter sends, Shift+Enter adds a newline, and IME composition does not submit.
+4. Sending clears the composer immediately, uploads the queue, and requests AI understanding. A visible spinner describes the work. A sent-message placeholder bridges the wait for persisted chat state.
+5. AI returns a natural reply and structured brand/product context, with source-attributed rules and qualified interpretations. Source documents are treated as data.
+6. Brand and Product cards appear above a separate Chat panel. They show vibe, typography, palette, expandable rules, functions, audience, constraints and timing. Detailed style-interpretation chips are omitted from the current UI.
+7. Changed context invalidates rule and build-plan approval. Stale responses are rejected using context revisions. Already saved messages/files remain available after AI errors, with a retry action.
 
-Attune creates an editable first concept from the designer's requirements and brand guidance so the team can evaluate the idea sooner.
+Partial uploads are possible if a submission fails midway; file persistence is not an atomic transaction across the entire attachment batch. Unknown engineering requirements must not be presented as validated capabilities.
 
-### Fragmented Team Feedback
+## 4. Initial concept generation
 
-Feedback is often spread across meetings, messages, screenshots, and documents. The designer must organize the comments and manually translate them into design changes.
+1. The designer presses **Review & approve rules**. The button indicates whether approval is needed or complete.
+2. **Build concept** requests a component plan, validates it, approves the plan through the application flow, then starts Blender. There is no separate initial-plan approval dialog.
+3. The canvas shows preparation immediately and rendering status while the scene job runs. Existing versions remain stored.
+4. The backend prefers the local Blender GUI via MCP; otherwise it attempts background Blender. Only one scene job runs across projects at a time.
+5. Blender builds the parts and a studio scene, adds logo/wordmark treatment where applicable, exports the preview and three renders, and writes a completion marker.
+6. The new version becomes current after successful completion. Failures expose an error and do not create a successful version entry.
 
-Attune keeps feedback with the correct design version. The designer decides which comments matter, and the agent uses only those comments to prepare the next version.
+The plan schema and generated artifacts provide technical checks. Initial generation is not a comprehensive brand audit, physical-fit test, or engineering validation. The completion marker is not a guarantee of design quality.
 
-## 3. Users
+## 5. Concept workspace and history
 
-### Designer
+- White interface with a project sidebar, product canvas, design-direction cards and Chat.
+- View controls for interactive 3D, perspective, front and detail; comparison against a source/other version; `.blend` download.
+- No component-label strip below the canvas.
+- A compact rebuild banner identifies the version and changed properties, including before/after color values.
+- One concept-history stream. Expandable details include specification/context changes, rationale, source version, feedback decisions and approved edits where recorded. Raw project-update cards are not a separate visible history.
+- Opening an earlier version changes the current selection; stored artifacts are retained. Older records may lack detailed snapshots.
+- Each project has a delete control with confirmation. Current implementation is soft deletion: hidden from the project list, data retained. There is no restore-from-trash UI. Deletion is blocked during a scene job.
 
-- Provides product requirements and brand guidelines.
-- Reviews and publishes the generated concept.
-- Accepts or removes team comments.
-- Starts and approves a redesign.
-- Retains final control over the design.
+## 6. Team feedback and controlled redesign
 
-### Team Reviewer
+### Current feedback surface
 
-- Views a published 3D concept and its renders.
-- Leaves feedback on that version.
-- Cannot modify the model or approve a redesign.
+The designer sees comments for the selected version, with an optional reviewer name, role and small illustrated avatar. Local sample identities are fictional, not authenticated users. The visible UI has no hackathon banner, sample-loader button, reviewer identity selector, publication action, or extra comment composer. The local backend retains comment creation and sample-seeding endpoints. Sample comments in the development database are not shipped with the repository.
 
-For the local MVP, reviewers use selectable local identities. Remote accounts and authentication are not included.
+Personal revisions use Chat followed by rule review and another build. This path updates context and regenerates a concept; it does not promise preservation of every unchanged component. The feedback redesign path below is the restricted-edit workflow.
 
-## 4. Feature 1: Generate the First 3D Concept
+### Decisions and flow
 
-### Input
+1. Comments start pending. The designer selects **Approve** (stored as `accepted`) or **Remove** (stored as `removed`) for every comment.
+2. Removed comments and decision history remain stored but are excluded from the redesign prompt.
+3. **Redesign** requires approved brand rules, a component-based current version, no pending decisions, and at least one accepted comment.
+4. The agent proposes edits using only accepted comments. Each change references accepted comment IDs; accepted feedback must be accounted for by changes or blockers.
+5. A summary dialog presents before/after changes. Conflicts, unsupported requests and missing clarification block rebuilding.
+6. **Rebuild** explicitly approves all displayed proposed changes. There is no separate “Approve proposal” step or per-change checkbox in the current UI.
+7. The backend rejects stale/reused proposals and binds the approval to the source, source-file hash, feedback revision and project context.
+8. Blender copies the source file, imports the copied scene and applies only the approved fields. The original scene file is retained.
+9. Verification, a fresh manifest, GLB and three renders are produced. On success the new version becomes current and comparison uses its source. Failure leaves the source current and records an error.
 
-- Product description and functional requirements in the textbox.
-- Designer can upload the Brand guideline pdf file.
+### Allowed edits and verification boundary
 
-### Flow
+Allowed properties are **color, roughness, metallic, dimensions_mm, position_mm, rotation_deg and bevel_mm** on existing components. Adding/removing parts, new logo placement, arbitrary code, lighting/camera changes and unsupported properties are not supported by this redesign path. Existing logo treatment may be preserved, but logo editing is not an allowlisted redesign operation.
 
-1. The agent converts the inputs into a structured 3D generation plan.
-2. The designer reviews and approves the plan.
-3. Blender generates a file.
-4. The system creates a GLB preview and front, three-quarter, and detail renders.
-5. The system measures the scene and validates the output.
+Verification compares object membership, geometry hashes, transforms, primary material values, bevel and light energy against expected edits. It does not prove collision clearance, manufacturability, functional performance, exact brand fidelity, or preservation of every possible Blender data property.
 
-### Validation
+## 7. Architecture and persistence
 
-The generated version is valid when:
+React/TypeScript handles the workspace; Three.js loads GLB previews. FastAPI validates requests and model output, stores state in SQLite, and starts scene jobs on a background thread. The configured OpenAI Responses API produces structured context, component plans and redesign proposals. Blender MCP invokes checked-in Python workers in the GUI; background Blender is the fallback.
 
-- Required product components exist.
-- Reviewable objects have stable IDs.
-- The Blender scene and GLB preview can be opened.
-- Required renders exist.
-- Scene dimensions and materials can be measured.
+`backend/main.py` owns project/intake/job orchestration; `backend/redesign.py` owns feedback approvals; `backend/mcp_bridge.py` owns MCP transport; `blender/product.py`, `scene.py` and `redesign.py` generate, render and verify scenes.
 
-Validation must use fresh measurements and renders. A successful command alone does not prove that the model is valid.
+Project state is in `data/workspace.sqlite`, sources in `data/uploads/`, artifacts in `outputs/demo/<version>/`. Versions retain specifications and change evidence where available. Jobs are in-process, not a durable worker queue; automatic recovery after a server restart is not implemented. The header's Blender connection indicator checks socket reachability.
 
-## 5. Feature 2: Publish and Gather Feedback
+Credentials remain on the backend in environment variables or ignored `.env.local`. No credentials, local project database or generated artifacts belong in Git. There is no authentication or enforced designer/reviewer permission separation; this is a trusted local workspace.
 
-### Flow
+## 8. Acceptance criteria and current status
 
-1. The designer publishes a validated design version.
-2. The team opens the published 3D preview and renders.
-3. Each reviewer selects a local identity and leaves comments.
-4. Comments may optionally reference a render view or model object.
-
-### Rules
-
-- A publication is a fixed snapshot of one design version.
-- Later changes must not alter an older publication.
-- Every comment records its reviewer, time, and design version.
-- Reviewers can comment but cannot change the model.
-- The interface shows whether reviewers are viewing the latest version.
-
-## 6. Feature 3: Evaluate Feedback and Redesign
-
-### Comment Decisions
-
-The designer marks each comment as:
-
-- **Accepted:** include it in the next redesign.
-- **Removed:** keep it in the history, but do not use it in the redesign.
-
-### Redesign Flow
-
-1. The designer evaluates the comments.
-2. The designer clicks **Redesign**.
-3. The agent uses only accepted comments to create a redesign plan.
-4. The system identifies conflicting or unsupported requests.
-5. The designer reviews and approves the proposed changes.
-6. Blender applies only the approved changes to a new scene version.
-7. The system creates fresh measurements, previews, and renders.
-8. The designer compares the original and redesigned versions.
-
-The agent cannot treat comments as permission to edit. No model change occurs until the designer approves the redesign plan.
-
-### Supported MVP Changes
-
-- Change an approved material or color.
-- Adjust supported product proportions.
-- Adjust the size or position of a non-structural detail.
-- Adjust lighting or review-camera settings.
+| ID | Criterion | Status |
+|---|---|---|
+| PROJ-01 | Isolated projects with empty new-project context | Implemented; legacy demo retained |
+| PROJ-02 | Delete a project with confirmation | Implemented as soft deletion |
+| CHAT-01 | Queue attachments until Send and clear submitted text immediately | Implemented |
+| CHAT-02 | Interpret sources and brief, show cards and useful waiting/error states | Implemented; requires AI access |
+| GEN-01 | Approve rules, then build a generic component concept | Implemented |
+| GEN-02 | Provide editable scene, GLB, manifest and three renders | Implemented; requires successful Blender job |
+| HIST-01 | Compare/open versions and inspect detailed changes | Implemented; legacy detail coverage varies |
+| REV-01 | Accept/remove version-specific comments | Implemented |
+| REV-02 | Use accepted comments only and reject stale/conflicting proposals | Implemented |
+| REV-03 | Apply changes only after explicit Rebuild approval | Implemented |
+| REV-04 | Preserve source and verify allowed edits in a new version | Implemented within stated verification scope |
+| TEAM-01 | Publish, invite reviewers, receive remote comments, enforce roles | Not implemented |
 
-Unsupported changes are clearly labeled and require manual editing.
+Repository checks are `npm run build` and backend unittest discovery (currently 31 tests). Tests do not substitute for a live Blender run or designer review.
 
-## 7. Required Screens
+## 9. Deferred capabilities
 
-### Project Setup
+Authenticated teammate accounts, publication snapshots, invitations, public links, notifications, a real teammate comment composer, cross-project/team brand-alignment analysis, autonomous Designer/PM agents, deadline-risk or effort scoring, image-first preview generation, automatic cheaper-model routing, production CAD and engineering verification remain outside the current implementation.
 
-- Product requirements.
-- Brand guidelines and references.
-- Generate action.
-
-### Concept Workspace
-
-- 3D preview and renders.
-- Validation status and version number.
-- Publish button.
-
-### Team Review
-
-- Published concept and version.
-- Reviewer identity selector.
-- Comment form and comment list.
-
-### Feedback and Redesign
-
-- Accepted and removed comment controls.
-- Redesign button.
-- Proposed changes and conflicts.
-- Approve or cancel controls.
-- Before-and-after comparison.
-
-## 8. System Architecture
-
-```text
-┌──────────────────────────────────────────────┐
-│               Local React App                │
-│ Concept · Publish · Feedback · Redesign     │
-└──────────────────────┬───────────────────────┘
-                       │ Local HTTP
-                       ▼
-┌──────────────────────────────────────────────┐
-│               FastAPI Backend                │
-│ Projects · Versions · Comments · Approvals  │
-└──────────────┬──────────────────┬────────────┘
-               │                  │
-               ▼                  ▼
-┌──────────────────────┐  ┌────────────────────┐
-│ Agent                │  │ SQLite             │
-│ Generation and       │  │ Project state and  │
-│ redesign planning    │  │ feedback history   │
-└───────────┬──────────┘  └────────────────────┘
-            │ Validated plan
-            ▼
-┌──────────────────────────────────────────────┐
-│         Allowlisted Blender Worker           │
-│ Generate · Edit · Measure · Render          │
-└──────────────────────┬───────────────────────┘
-                       ▼
-┌──────────────────────────────────────────────┐
-│             Versioned Artifacts              │
-│ .blend · GLB · manifest · renders           │
-└──────────────────────────────────────────────┘
-```
-
-### Responsibilities
-
-**React app**
-
-- Provides the designer workspace and team review interface.
-- Prevents reviewers from accessing model-edit actions.
-
-**FastAPI backend**
-
-- Validates inputs and agent outputs.
-- Stores projects, versions, publications, comments, and approvals.
-- Uses only accepted comments for redesign.
-- Rejects stale redesign requests.
-- Preserves the last valid version when a job fails.
-
-**Agent**
-
-- Creates generation plans from requirements and brand guidelines.
-- Creates redesign plans from accepted comments.
-- Identifies conflicts and unsupported requests.
-- Produces validated data, not arbitrary Blender code.
-
-**Blender worker**
-
-- Generates the editable scene.
-- Applies approved, allowlisted changes.
-- Maintains stable object IDs.
-- Saves a new version instead of overwriting the old one.
-- Produces fresh measurements and renders.
-
-**Storage**
-
-- SQLite stores project state, publications, comments, decisions, and approvals.
-- The local filesystem stores versioned Blender scenes, GLB previews, manifests, and renders.
-
-### MVP Boundary
-
-The MVP runs on one local machine. “Publish to the team” means publishing to a local review workspace with simulated reviewer identities.
-
-Remote collaboration, accounts, invitations, notifications, and public links are outside the MVP.
-
-## 9. Core Requirements
-
-| ID | Requirement |
-|---|---|
-| GEN-01 | Generate an editable 3D concept from product requirements and brand guidelines. |
-| GEN-02 | Validate the concept with fresh scene measurements and renders. |
-| PUB-01 | Let the designer publish an immutable design version. |
-| COM-01 | Let reviewers leave version-specific comments. |
-| COM-02 | Prevent reviewers from modifying the model. |
-| REV-01 | Let the designer accept or remove comments. |
-| REV-02 | Use only accepted comments in a redesign plan. |
-| REV-03 | Require designer approval before changing the model. |
-| REV-04 | Create a new version without overwriting the old one. |
-| REV-05 | Change only approved objects and properties. |
-| REV-06 | Validate the redesigned version with fresh evidence. |
-| REV-07 | Show which accepted comments caused each change. |
-
-## 10. MVP Acceptance Criteria
-
-- [ ] A designer can provide product requirements and brand guidelines.
-- [ ] The system generates an editable compact speaker concept.
-- [ ] The system validates the model and produces a GLB preview and three renders.
-- [ ] The designer can publish the validated version.
-- [ ] Reviewers can add comments to that version.
-- [ ] The designer can accept or remove comments.
-- [ ] Clicking Redesign creates a plan from accepted comments only.
-- [ ] The designer must approve the plan before model changes.
-- [ ] The redesign creates and validates a new version.
-- [ ] The original version remains available.
-- [ ] The designer can see which comments caused each change.
-
-## 11. Final MVP Definition
-
-> A designer provides product requirements and brand guidelines. Attune generates and validates an editable 3D concept. The designer publishes it to a local team review workspace, where teammates leave feedback. The designer accepts or removes comments and clicks Redesign. Attune creates a plan from only the accepted comments, asks for approval, produces a new model version, and validates the result.
-
-Attune succeeds when it helps designers prototype ideas faster, gather feedback more easily, and iterate without losing control of the design.
+The intended next collaboration layer can reuse version-specific feedback and designer approval. It must introduce real identity, access control and comment submission before being described as a working multi-user product.
