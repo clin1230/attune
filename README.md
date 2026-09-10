@@ -4,6 +4,18 @@ Attune is a local design workspace that turns brand guidelines and a conversatio
 
 The current implementation supports declarative product components rather than a speaker-only template. It has been exercised locally with speakers, portable chargers, and a laptop. These are visual concepts, not production CAD or validated engineering designs.
 
+## Screenshots
+
+Actual screenshots from the local laptop example. Reviewer/profile identities are fictional, and example projects are not included in a fresh checkout.
+
+**Concept comparison and Chat** — review the original and rebuilt laptop alongside the conversation that defines the product.
+
+![Laptop before-and-after comparison with project Chat](docs/screenshots/laptop-workspace.png)
+
+**Brand understanding** — source-informed direction, typography and palette, with a compact rebuild change summary.
+
+![Brand understanding and verified trackpad color change](docs/screenshots/brand-understanding.png)
+
 ## What works today
 
 - Separate projects with their own sources, conversation, rules, concept versions, and feedback. Project deletion hides the project while retaining local data.
