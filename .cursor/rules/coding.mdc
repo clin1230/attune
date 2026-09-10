@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Keep the app simple. Validate API and model outputs, persist stable object IDs, reject stale previews, require approval, allowlist edits, back up before edits and never overwrite old versions. Preserve last valid state on failures. Test approval gates, immutable history, property isolation and fresh verification. Clearly label prepared data and unavailable capabilities.

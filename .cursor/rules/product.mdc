@@ -1,0 +1,4 @@
+---
+alwaysApply: true
+---
+Build the PRD's Brand-Aware 3D Product Design Agent for one compact desktop speaker. The human designer approves profile, plan, scene revisions and final concept. Do not add PM-agent negotiation, manufacturing claims or multiple product categories. Inferred rules cannot cause blocking FAIL findings. See docs/PRD.md.
