@@ -29,7 +29,7 @@ That is why we built Attune.
 
 Like tuning an instrument to a reference note, Attune uses a company’s existing brand guidelines as its reference. It reviews an initial 3D concept, examines its form, proportions, colors, materials, details, and presentation, and identifies where the design falls out of alignment.
 
-Attune then explains the mismatch, proposes focused revisions, and—with the designer’s approval—modifies and rerenders the concept. The new result is reviewed again until the product and the brand speak the same visual language.
+Attune then explains the mismatch, modifies and rerenders the concept, and reviews the new result again until the product and the brand speak the same visual language.
 
 Attune does not replace the designer or invent the brand.
 
@@ -48,8 +48,6 @@ Agent: review design in Blender
               ↓
 Agent: analyze against guidelines
               ↓
-Designer approves revisions
-              ↓
 Agent: revise → rerender → re-review
               ↓
         Stay in tune
@@ -61,13 +59,13 @@ Agent: revise → rerender → re-review
 
 AI can generate polished 3D concepts quickly, but it does not reliably keep them on-brand. Guidelines stay in PDFs and senior designers’ judgment, while review feedback stays subjective (“this does not feel like us”) and revisions stay manual.
 
-Attune turns brand guidelines into reviewable rules, finds off-brand choices with object-level evidence, applies designer-approved fixes, and verifies the result.
+Attune turns brand guidelines into reviewable rules, finds off-brand choices with object-level evidence, applies focused fixes in Blender, and verifies the result.
 
 ---
 
 ## 3. Users
 
-**Product designer** — needs a branded starting point and specific, evidence-based feedback they can approve selectively.
+**Product designer** — provides the creative requirements and brand guidelines, then reviews the generated result.
 
 **3D artist** — needs exact objects and properties called out, controlled edits, and verification without rebuilding the scene.
 
@@ -77,7 +75,7 @@ Attune turns brand guidelines into reviewable rules, finds off-brand choices wit
 
 1. **Evidence before opinion.** Every finding names the brand rule, scene object, observation, and evidence.
 2. **Brand-specific, not generically attractive.** Attune checks whether the concept matches this brand’s frequency—not whether it looks “good.”
-3. **Designer-controlled.** No scene mutation without approval.
+3. **Agent-operated.** The Agent may generate and revise the Blender scene automatically within allowlisted operations.
 4. **Editable outputs.** Primary output is an editable Blender scene, not only a render.
 5. **Verify after fix.** A finding becomes PASS only after a new review of the revised scene.
 
@@ -91,7 +89,7 @@ Attune turns brand guidelines into reviewable rules, finds off-brand choices wit
 4. Produce three product renders (three-quarter, front, detail).
 5. Review the concept against brand-design rules.
 6. Connect findings to stable object IDs and visual evidence.
-7. Let the designer approve at least two controlled revisions.
+7. Let the Agent apply at least two controlled revisions.
 8. Rerender and verify the revised concept.
 9. Show a clear before-and-after explanation.
 
@@ -105,10 +103,14 @@ Attune turns brand guidelines into reviewable rules, finds off-brand choices wit
 
 ### Inputs
 
-- Brand guideline (PDF, Markdown, or text)
-- Logo, color palette, 3–6 reference images
-- Optional written brand principles
-- Product brief (type, functions, target user, constraints, desired character)
+1. **Product requirements (textbox)**
+   - Product type and purpose
+   - Required components and functions
+   - Target user and context
+   - Size or design constraints
+   - Desired character
+2. **Brand Guidelines (PDF)**
+   - One PDF containing the brand's form, color, material, detail, and presentation guidance
 
 ### Outputs
 
@@ -116,7 +118,7 @@ Attune turns brand guidelines into reviewable rules, finds off-brand choices wit
 - One editable Blender scene with persistent object IDs
 - Three review renders
 - Structured brand-review findings
-- At least two designer-approved revisions
+- At least two Agent-applied revisions
 - Before-and-after verification summary
 
 ### Environment
@@ -129,7 +131,7 @@ Attune turns brand guidelines into reviewable rules, finds off-brand choices wit
 
 ## 7. Brand Design Profile
 
-Machine-readable bridge between brand materials and generation/review. Designer edits and approves it before generation.
+Machine-readable bridge between brand materials and generation/review. The Agent creates it automatically from the PDF.
 
 Covers:
 
@@ -173,8 +175,8 @@ Rule ID · category · status · object IDs · observation · expectation · evi
 
 ### Safe fixes (MVP)
 
-1. Replace material with an approved material  
-2. Change an approved accent color  
+1. Replace material with a brand-specified material  
+2. Change to a brand-specified accent color  
 3. Adjust scale/thickness of a non-structural detail  
 4. Move logo or non-functional detail within a defined range  
 5. Adjust lighting intensity or background color  
@@ -183,8 +185,8 @@ Rule ID · category · status · object IDs · observation · expectation · evi
 ### Flow
 
 ```text
-Select finding → Preview change → Designer approves
-→ Backup scene → Apply fix → Rerender → Verify
+Find issue → Create bounded change → Backup scene
+→ Apply fix → Rerender → Verify
 ```
 
 Major silhouette, structural, or functional changes require manual editing.
@@ -195,102 +197,121 @@ Verification creates a new review run with fresh evidence. Only confirmed resolu
 
 ## 10. User Flow
 
-1. **Frontend** — designer uploads guidelines and product brief  
-2. **Agent** — builds Brand Design Profile; designer reviews/approves  
-3. **Backend** — connects to the Blender scene (demo concept or generated)  
-4. **Agent** — reviews the design in Blender against the guidelines  
-5. **Frontend** — designer sees findings, evidence, and proposed fixes  
-6. **Designer approves** → **Backend** applies the fix in Blender  
-7. **Agent** — rerenders, re-reviews, and iterates until the design is in tune  
-8. **Frontend** — designer approves the final concept
+1. Designer enters the **product requirements** in a textbox.
+2. Designer uploads the **Brand Guidelines PDF**.
+3. Agent turns both inputs into:
+   - Brand Design Profile
+   - 3D generation plan
+4. Backend connects to Blender.
+5. Agent instructs Blender to generate the editable 3D model.
+6. Blender returns the scene data and renders.
+7. Agent reviews the model against the Brand Guidelines.
+8. Agent applies bounded revisions through the backend.
+9. Blender rerenders and the Agent repeats the review.
+10. Designer views the final result.
 
 ---
 
 ## 11. Screens
 
 1. **Project setup** — brand upload, brief, demo shortcut  
-2. **Brand Design Profile** — rules, sources, confidence, approve/edit  
+2. **Brand Design Profile** — extracted rules, sources, confidence  
 3. **Generation** — plan, Blender status, renders, object list  
 4. **Review** — renders, object tree, findings, evidence  
-5. **Fix preview** — before/after properties, approve/reject  
+5. **Revision log** — before/after properties and applied changes  
 6. **Verification** — before/after renders, resolved and remaining findings  
 
 ---
 
 ## 12. System Structure
 
-Attune has three layers: **Frontend**, **Backend**, and **Agent**. The designer feeds guidelines in the frontend; the backend connects those guidelines to Blender; the agent reviews the live design, analyzes it against the guidelines, and re-iterates until the product stays in tune.
+Attune has four parts: **Frontend**, **Backend**, **Agent**, and **Blender**.
 
 ```text
-┌─────────────────────────────────────────────────────────┐
-│                      FRONTEND                           │
-│  Designer uploads guidelines · reviews findings ·       │
-│  approves revisions · sees before/after                 │
-└───────────────────────────┬─────────────────────────────┘
-                            │ guidelines + approvals
-                            ▼
-┌─────────────────────────────────────────────────────────┐
-│                      BACKEND                            │
-│  Stores brand context · connects to Blender ·           │
-│  runs scene tools · returns renders and scene facts     │
-└───────────────┬─────────────────────────┬───────────────┘
-                │                         │
-                ▼                         ▼
-        ┌───────────────┐         ┌───────────────┐
-        │    Blender    │         │  Attune Agent │
-        │  live scene   │◄───────►│  (GPT-6 Astra)│
-        │  inspect/edit │         │ review · fix  │
-        │  render       │         │ re-iterate    │
-        └───────────────┘         └───────────────┘
+Designer
+   ↓
+Frontend
+   ├── Product requirements textbox
+   └── Brand Guidelines PDF upload
+   ↓
+Backend API
+   ├── stores project inputs
+   ├── sends inputs to Agent
+   └── connects Agent tools to Blender
+   ↓
+Attune Agent
+   ├── extracts brand rules
+   ├── creates a 3D generation plan
+   ├── requests Blender operations
+   └── reviews and revises the result
+   ↓
+Blender
+   ├── generates editable objects
+   ├── assigns materials and stable object IDs
+   └── saves the scene and renders review views
 ```
 
 ### Frontend
 
-Where the designer works.
-
-- Upload brand guidelines, logo, palette, and references
-- Provide the product brief
-- Review the Brand Design Profile
-- View Blender renders and review findings
-- Approve or reject proposed revisions
-- Compare before/after and continue the loop
+- Product requirements textbox
+- Brand Guidelines PDF upload
+- Generated Brand Design Profile and 3D plan
+- Blender generation status
+- Render, finding, and revision review
 
 ### Backend
 
-The bridge between the frontend, Blender, and the agent.
-
-- Persist project data, guidelines, and Brand Design Profile
-- Connect to Blender over the Blender Python API
-- Expose scene tools: inspect objects, read materials/dimensions, apply approved edits, render views
-- Send scene facts and renders to the agent
-- Return findings and verification results to the frontend
+- Validate and store the textbox input and PDF
+- Extract PDF text with page references
+- Manage project state and revision history
+- Connect to Blender through controlled tools
+- Send generation commands to Blender
+- Return scene data, renders, findings, and progress to the frontend
+- Save scene versions before every revision
 
 ### Agent (GPT-6 Astra)
 
-The brand-aware reviewer that operates on the Blender design.
+1. Read the product requirements.
+2. Extract brand rules from the PDF with page references.
+3. Resolve both inputs into a structured 3D generation plan:
+   - Objects and components
+   - Dimensions and proportions
+   - Form language
+   - Colors, materials, and finishes
+   - Signature details
+   - Camera, lighting, and presentation
+4. Call allowlisted Blender tools to build the model.
+5. Review the generated scene data and renders against the extracted rules.
+6. Explain mismatches and propose object-level revisions.
+7. Request bounded Blender changes and review again automatically.
 
-1. **Read guidelines** from the frontend (via the Brand Design Profile)
-2. **Review the design in Blender** — inspect form, proportions, colors, materials, details, and presentation
-3. **Analyze against guidelines** — produce object-level findings with evidence
-4. **Propose revisions** — suggest focused, allowlisted changes
-5. **Re-iterate** — after designer approval, apply changes in Blender, rerender, and review again
+The Agent must not execute arbitrary Blender code. All Blender actions must use backend-validated, allowlisted operations.
+
+### Blender
+
+- Create separate, editable objects from the generation plan
+- Assign stable object IDs
+- Apply dimensions, materials, lights, and cameras
+- Save a `.blend` scene
+- Produce fixed review renders
+- Apply only backend-validated revisions
 
 ### Iteration loop
 
 ```text
-Guidelines (frontend)
+Product requirements + Brand Guidelines PDF
         ↓
-Backend opens / updates Blender scene
+Brand rules + 3D generation plan
         ↓
-Agent reviews scene + renders
+Blender generates editable 3D model
         ↓
-Agent analyzes vs guidelines → findings
+Agent reviews model against guidelines
         ↓
-Designer approves in frontend
+Agent revises through bounded Blender tools
         ↓
-Backend applies fix in Blender
+Blender updates + rerenders
         ↓
-Agent re-reviews → repeat until in tune
+Agent re-reviews → repeat
 ```
 
 ### Core tools
@@ -310,9 +331,9 @@ Agent re-reviews → repeat until in tune
 
 **Seeded issues:** polished chrome shell · bright cyan control ring · ring too thick · logo too close to base · off-family proportions · overly dramatic render contrast  
 
-**Demo flow:** brand inputs → profile → concept → three renders → review → fix chrome material → adjust ring → rerender → verify → approve  
+**Demo flow:** brand inputs → profile → concept → three renders → review → fix chrome material → adjust ring → rerender → verify → final result  
 
-> Attune did not simply make the speaker more attractive. It explained which decisions made it out of tune with Vela, changed only the approved objects, and verified the result until the product and the brand spoke the same visual language.
+> Attune did not simply make the speaker more attractive. It explained which decisions made it out of tune with Vela, changed only allowlisted objects and properties, and verified the result until the product and the brand spoke the same visual language.
 
 ---
 
@@ -327,16 +348,16 @@ Agent re-reviews → repeat until in tune
 | Findings with rule + object evidence | 100% actionable |
 | Supported Auto-fix types | ≥ 2 |
 | Fixes followed by verification | 100% |
-| Unapproved scene mutations | Zero |
+| Changes outside allowlist | Zero |
 | End-to-end demo | Under 3 minutes |
 
 ---
 
 ## 15. Safety Controls
 
-- Designer approval before every scene mutation  
 - Scene backup before revision  
 - Allowlisted operations only  
+- Designer can stop the iteration or restore the previous scene
 - Distinguish measured vs inferred findings  
 - Show rule source and confidence  
 - Dismiss finding or restore previous scene  
@@ -348,12 +369,12 @@ Agent re-reviews → repeat until in tune
 ## 16. Acceptance Criteria
 
 - [ ] Designer can provide prepared brand context  
-- [ ] Astra produces a Brand Design Profile; designer can approve it  
+- [ ] Astra produces a Brand Design Profile from the PDF  
 - [ ] Editable Blender smart-speaker scene with persistent object IDs  
 - [ ] Three review renders  
 - [ ] At least five prepared brand inconsistencies detected  
 - [ ] Every actionable finding references a brand rule and correct object ID  
-- [ ] Designer previews and must approve before a revision applies  
+- [ ] Agent applies revisions only through allowlisted operations  
 - [ ] Material replacement and one detail/proportion adjustment work  
 - [ ] Original scene remains recoverable  
 - [ ] Rerender + new verification run; PASS only after new evidence  
@@ -364,7 +385,7 @@ Agent re-reviews → repeat until in tune
 
 ## 17. Final Definition
 
-> A product designer gives Attune Vela’s brand context and a smart-speaker brief. Astra turns that into explicit product-design rules, builds an editable Blender concept, and renders three views. Attune finds where the design falls out of alignment—form, proportions, colors, materials, details, presentation—with rule- and object-level evidence. The designer approves controlled fixes. Attune modifies, rerenders, and reviews again until the product and the brand speak the same visual language.
+> A product designer gives Attune Vela’s brand context and a smart-speaker brief. Astra turns that into explicit product-design rules, builds an editable Blender concept, and renders three views. Attune finds where the design falls out of alignment—form, proportions, colors, materials, details, presentation—with rule- and object-level evidence. Attune then modifies, rerenders, and reviews again automatically until the product and the brand speak the same visual language.
 
 The brand provides the frequency.  
 The designer sets the creative direction.  
