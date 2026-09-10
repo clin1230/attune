@@ -97,9 +97,6 @@ Attune turns brand guidelines into reviewable rules, finds off-brand choices wit
 
 ## 6. MVP Scope
 
-### Product category
-
-> **Compact desktop smart speaker**
 
 ### Inputs
 
