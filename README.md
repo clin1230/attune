@@ -1,32 +1,44 @@
-# Attune — Brand-aware 3D product concepts
+# Attune — Generate 3D products for your brand
 
-Attune is a local design workspace that turns brand guidelines and a conversational product brief into an editable Blender concept. Designers review the brand direction, build a concept, and evaluate version-specific feedback before approving a rebuild.
+Attune turns brand guidelines and a conversational product brief into an editable 3D product concept. Instead of asking only “generate a laptop,” a designer can ask “generate a laptop for our brand.”
 
-The current implementation supports declarative product components rather than a speaker-only template. It has been exercised locally with speakers, portable chargers, and a laptop. These are visual concepts, not production CAD or validated engineering designs.
+**The current MVP focuses on one core feature: brand-aware 3D generation.** Teammate feedback supports the same design-and-iteration workflow: the designer reviews suggestions, decides which to apply, and approves a new version. It is not a separate, fully built collaboration platform.
+
+## The workflow
+
+1. **Share your direction.** Upload brand guidelines, a logo, references or a moodboard, and describe the product in Chat.
+2. **Review the understanding.** Attune organizes the brand palette, typography, rules and product brief into cards. Clarify the direction through Chat, then approve the rules.
+3. **Generate a concept.** Click Build concept to create an editable Blender scene, interactive 3D preview and three rendered views.
+4. **Evaluate teammate feedback.** Review comments with names and avatars. Approve suggestions you want to include and remove those you do not want to apply.
+5. **Decide whether to iterate.** Click Redesign to see the proposed changes. Only accepted comments inform the plan; conflicting or unsupported requests block rebuilding. Click Rebuild when you agree with the summary.
+6. **Compare versions.** Inspect the new concept against its source and open the history to see what changed. The original stays saved.
+
+A comment is a suggestion, not permission to edit. No feedback-driven model change happens until the designer presses **Rebuild**. For personal revisions, designers can update the direction in Chat and generate another concept.
 
 ## Screenshots
 
-Actual screenshots from the local laptop example. Reviewer/profile identities are fictional, and example projects are not included in a fresh checkout.
+Fresh captures of the local **hum laptop** example. These show the actual interface; reviewer names and avatars are fictional demo identities. Example projects and comments are local data, not bundled with a fresh checkout.
 
-**Concept comparison and Chat** — review the original and rebuilt laptop alongside the conversation that defines the product.
+**Generate a product from brand context** — the laptop concept alongside hum’s palette, design direction and Chat.
 
-![Laptop before-and-after comparison with project Chat](docs/screenshots/laptop-workspace.png)
+![Generated hum laptop with brand understanding and Chat](docs/screenshots/laptop-workspace.png)
 
-**Brand understanding** — source-informed direction, typography and palette, with a compact rebuild change summary.
+**Choose which feedback to apply** — reviewer comments retain their Approve/Remove decisions before the designer requests a redesign.
 
-![Brand understanding and verified trackpad color change](docs/screenshots/brand-understanding.png)
+![Teammate feedback with reviewer avatars and approved and removed comments](docs/screenshots/team-feedback.png)
 
-## What works today
+## What is implemented
 
-- Separate projects with their own sources, conversation, rules, concept versions, and feedback. Project deletion hides the project while retaining local data.
-- Chat-based intake with queued guideline, logo, reference, and moodboard attachments. Files are submitted only when Send is pressed; Enter sends and Shift+Enter inserts a newline.
-- Brand/Product summary cards with palette, typography, brief, constraints, and source-attributed rules. New projects start without seeded brand content.
-- Direct **Review & approve rules → Build concept** actions, with preparation and rendering indicators.
-- Interactive GLB, front/perspective/detail renders, downloadable `.blend`, source comparison, and concept history with expandable changes.
-- **Team feedback:** Approve/Remove decisions, accepted-comment redesign planning, a change-summary dialog, and explicit **Rebuild** approval.
-- Restricted component edits with before/after verification and preservation of the source scene.
+- Separate projects with saved sources, conversations, rules, versions and feedback.
+- Queued uploads that are sent only after Send, with immediate composer clearing and visible waiting states.
+- Brand/Product understanding cards and direct rule approval and concept generation.
+- Component-based 3D concepts, a GLB viewer, three renders and downloadable `.blend` files.
+- Comment decisions, accepted-feedback planning, explicit rebuild approval and verification of supported edits.
+- Before/after comparison and expandable concept history.
 
-Team feedback currently uses locally stored comments and optional sample reviewer names/illustrated avatars. There is no teammate login, publishing workflow, invitation, remote comment submission UI, or role-based authorization. The sidebar identity is a fictional presentation profile.
+**Feedback scope:** the review-and-redesign flow works with locally stored comments. For the demo, teammate comments are preloaded samples with names and avatars. There is no teammate login, invitation, publishing workflow or reviewer-facing comment form yet. The backend supports creating local comments, but the full teammate submission experience remains future work.
+
+The generator has been exercised locally with speakers, portable chargers and laptops. It creates editable visual concepts from geometric components; it does not produce production CAD or validate engineering performance. Broader capabilities discussed in the [PRD](docs/PRD.md) should not be read as completed features.
 
 ## Local setup
 
